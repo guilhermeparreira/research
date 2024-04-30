@@ -1,0 +1,44 @@
+```{r, echo = FALSE, results = "hide"}
+```
+
+Question
+========
+Analise as sentenças abaixo e marque APENAS as verdadeiras.
+
+Answerlist
+----------
+* Uma função $y = \frac{x^2 - 4}{x - 2}$ é contínua no ponto $x=2$.
+* A derivada de uma função pode ser interpretada com a taxa de mudança instântanea, além de ser o coeficiente angular da reta tangente ao gráfico de $f(x)$ em um ponto $a$ qualquer.
+* A derivada da função $f(x) = (3x^2 - 1)\exp^{x}$ é dada por $f^{\prime}(x) = (3x^2 -1)\exp^{x} + 6x \exp^{x}$.
+* A derivada da função $f(x) = \log(x^2 + 3x + 9)$ é dada por $f^{\prime}(x) = \frac{1}{x^2 + 3x + 9}$.
+* A equação da reta tangente a função $f(x) = \log(x)$ no ponto $x = 2$ é dada por
+$y = (\log(2) - 1) + 0.5x$.
+* O ponto de mínimo do logaritmo da função $f(x) = x \exp^{-10x}$ é obtido em $x = \frac{1}{10}$.
+* $\int \frac{1}{x} + \sqrt{x} dx = \log(x) + \frac{2}{3} x^{2/3}.$
+* Usando a soma de Riemann com 100 retâgulos a $\int_0^{100} x \exp^{-x/5} dx = 25.0424.$
+* Considere dois vetores $x = (0,2,4,8)$ e $y = (1,3,5,7)$. O produto interno de $x$ e $y$ é o vetor $z = (0,6,20,56)$.
+* Uma matriz $A$ de dimensão $n \times q$ pode ser multiplicada por outra matriz $B$ de dimensão $q \times m$ e a matriz $C$ resultante da multiplicação é de dimensão $q \times q$.
+
+Solution
+========
+Solução abaixo:
+
+Answerlist
+----------
+* Falso.
+* Verdadeira.
+* Verdadeira.
+* Falso.
+* Verdadeira.
+* Falso.
+* Verdadeira.
+* Verdadeira.
+* Falso.
+* Falso
+
+Meta-information
+================
+exname: funções, derivadas, integrais, vetores e matrizes.
+extype: mchoice
+exsolution: 0110101100
+exshuffle: 10

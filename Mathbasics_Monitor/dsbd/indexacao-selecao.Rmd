@@ -1,0 +1,15 @@
+---
+title: "Desafio: Módulo I"
+author: "prof. Wagner Hugo Bonat LEG/UFPR"
+date: 2019-03-29
+---
+
+```{r, cache=FALSE, include=FALSE}
+source("config/setup.R")
+```
+
+
+# Desafio: Módulo I
+
+
+

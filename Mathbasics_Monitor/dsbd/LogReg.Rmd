@@ -1,0 +1,451 @@
+---
+title: "Construindo um classificador binário"
+author: "Prof. Wagner Hugo Bonat"
+date: '2019-03-29'
+output: pdf_document
+subtitle: 'Construindo um classificador binário'
+---
+
+```{r, cache=FALSE, include=FALSE}
+source("config/setup.R")
+```
+
+# Introdução
+
+Classificadores binários são ferramentas populares em estatística
+e aprendizagem de máquina. Dentre os vários classificadores a regressão
+logística é um dos mais simples e populares. O modelo de regressão 
+logística se aplica a uma variável de interesse do tipo binária. 
+As aplicações são as mais diversas possíveis cobrindo desde aplicações 
+na indústria onde itens são classificados como conforme ou não-conforme
+até a medicina onde se estuda a presença ou ausência de uma certa doença 
+e como isso se relaciona com hábitos de vida dos pacientes, tais como, 
+sexo, idade, tabagismo entre outros. 
+
+O objetivo deste material é discutir apenas os aspectos matemáticos 
+relacionados a construção de um classificador binário. 
+Mais especificamente nos vamos discutir como apartir da ideia simples 
+do modelo de regressão linear múltipla nos chegamos ao modelo de 
+regressão logística. Os aspectos práticos desta técnica serão discutidos 
+na disciplina de Modelagem Estatística. 
+
+A especificação e implementação do modelo de regressão logística envolve 
+uma série de conhecimentos em métodos matemáticos que começam em 
+funções passa por cálculo diferencial onde a necessidade de resolver 
+um sistema não-linear fica evidente.
+No processo de solução de sistemas não-lineares operações com vetores, matrizes,
+a obtenção de inversas e de forma mais geral a solução de sistemas lineares aparece
+de forma proeminente. Entretanto, todo o processo de ajuste ou treinamento do modelo
+pode ser descrito como um simples problema de otimização não-linear.
+
+## Descrição do problema
+
+Suponha que temos um conjunto de observações $y_i$ com $i = 1, \ldots, n$
+de uma variável de interesse do tipo binária, ou seja, $y_i \in \{0, 1\}$.
+O objetivo pode ser descrever o relacionamento de $y_i$ com um conjunto
+de variáveis explanatórias, digamos $\boldsymbol{x}_{ij}$, ou mesmo
+apenas classificar uma nova observação em um dos grupos $0$ ou $1$ de
+acordo com os valores das variáveis explanatórias. 
+
+Como um exemplo de aplicação, suponha que temos um conjunto de dados
+com três colunas: renda do usuário (por mil), anos de experiência do usuário e
+se o usuário é assinante \textit{premium} ou não. Nosso, objetivo é 
+descrever como as variáveis explanatórias, neste caso renda e anos de
+experiência do usuário estão relacionados com o fato dele ser ou não 
+um assinante \textit{premium}. Uma vez identificado tal relacionamento,
+podemos usá-lo para predizer se um novo usuário será ou não assinante
+\textit{premium}, bem como, identificar dentro da base usuários que
+podem se interessar pela assinatura \textit{premium}. O resultado também
+pode ser usado para orientar campanhas de \textit{marketing} entre outros.
+A base de dados é fornecida no arquivo *reg_log.txt* e as primeiras
+linhas são mostradas abaixo.
+
+```{r, echo = FALSE}
+require(tweedie)
+set.seed(123)
+anos <- rpois(200, lambda = 5)
+renda <- rtweedie(200, mu = 50, phi = 0.5, power = 2)
+b0 <- -5
+b1 <- 0.1
+b2 <- 0.4
+eta <- b0 + b1*renda + b2*anos
+mu <- 1/(1+exp(-eta))
+y <- rbinom(200, prob = mu, size = 1)
+dados <- data.frame("Premium" = y, "Renda" = renda, "Anos" = anos)
+#write.table(dados, file = "reg_log.txt")
+head(dados)
+```
+Podemos visualizar os dados plotando as variáveis explanatórias e marcar
+com diferentes símbolos usuários \textit{premium} e não \textit{premium}.
+
+```{r, echo = FALSE, fig.width = 10, fig.height = 6}
+pch <- y
+pch[pch == 0] <- 19
+plot(renda ~ anos, ylab = "Renda/1000", pch = pch,
+     xlab = "Anos de experiência")
+legend("topright", legend = c("Premium", "Não Premium"), pch = c(1,19))
+```
+
+## Função perda quadrática para variáveis binárias
+
+A ideia de construir um classificador é similar ao modelo de regressão
+linear múltipla, ou seja, queremos minizar uma certa distância entre os
+dados $y_i$ e nosso modelo linear $\beta_0 + \beta_1 renda_i + \beta_2 anos_i$.
+Sendo assim, uma primeira tentativa óbvia é minimizar 
+$$
+SQ(\boldsymbol{\beta}) = \sum_{i=1}^n (y_i - (\beta_0 + \beta_1 renda_i + \beta_2 anos_i))^2.
+$$
+Isso pode ser feito facilmente em *R* uma vez que temos vários otimizadores numéricos disponíveis. O primeiro passo é escrever a função objetivo:
+
+```{r,}
+f_ols <- function(par, y, renda, anos) {
+  mu <- par[1] + par[2]*renda + par[3]*anos
+  SQ <- sum( (y - mu)^2 )
+  return(SQ)
+}
+```
+
+O segundo passo consiste em otimizar a função objetivo.
+Por simplicidade vamos usar um algoritmo numérico, porém lembre-se que
+neste caso temos expressões fechadas disponíveis.
+
+```{r,}
+fit_ols <- optim(par = c(0,0,0), fn = f_ols, y = dados$Premium, 
+                 renda = dados$Renda, anos = dados$Anos)
+fit_ols
+```
+O algoritmo convergiu e forneceu o vetor de $\beta$'s que minimiza a
+soma de quadrados. Podemos agora usar estes valores para predizer se
+um usuário é ou não \textit{premium} dado sua renda e anos de experiência.
+Neste caso, apenas como exemplo vamos predizer os mesmos usuários que foram
+usados para ajustar/treinar o modelo. Note que isso, também fornece uma indicação
+se o modelo tem um bom poder de predição. Entretando, na prática é mais usual
+separar a base em treino e teste e predizer os usuários na base teste.
+A predição é bastante simples entramos com a renda e anos de estudo
+e saímos com uma predição para $y_i$.
+
+```{r,}
+preditos <- fit_ols$par[1] + fit_ols$par[2]*dados$Renda + fit_ols$par[3]*dados$Anos
+```
+
+Vamos plotar os preditos contra os observados para verificar a performance
+do nosso modelo.
+
+```{r, echo = FALSE, fig.width = 10, fig.height = 6}
+plot(dados$Premium ~ preditos, ylab = "Observado", xlab = "Predito")
+```
+
+Apesar de ser possível essa abordagem leva a algumas incoveniências.
+Por exemplo, o ideal seria que a previsão fossem $0$ ou $1$ refletindo
+se o novo usuário será ou não um assinante \textit{premium}. No entanto,
+vimos que o modelo fornece preditos maiores que $1$ e
+pode potencialmente fornecer preditos negativos para usuários com pouca
+experiência e renda menor. Neste sentido, a interpretação do modelo não
+é clara e não reflete de forma fidedigna a realidade.
+
+## Melhorando o modelo
+
+Uma vez que nosso modelo não parece uma aproximação razoável para a
+realidade podemos tentar melhorá-lo fazendo com que aspectos práticos
+sejam levados em consideração. Note que se a previsão fosse restrita 
+ao intervalo unitário poderíamos interpretar a previsão como uma 
+medida de pertinência aos grupos, o que seria mais intuitivo. 
+O que gostaríamos é que grandes valores de
+$ \hat{\beta}_0 + \hat{\beta}_1 renda_i + \hat{\beta}_2 anos_i$ resultassem
+em valores próximos a $1$. Da mesma forma, pequenos valores de
+$ \hat{\beta}_0 + \hat{\beta}_1 renda_i + \hat{\beta}_2 anos_i$ devem
+resultar em valores próximos a $0$. Para incluir em nosso modelo essa
+intuição podemos usar uma função matemática que tenha essa característica.
+O que precisamos é uma função que receba um número real qualquer e resulte
+em um número no intervalo unitário. Em outros termos, precisamos de uma
+função que tenha domínio sendo os números reais e como imagem o intervalo 
+unitário, ou seja, $f(\cdot): \Re \to (0,1)$. 
+
+Existem na literatura diversas funções que tem tal propriedade. Uma
+escolha popular é a função logística dada por:
+$$
+f(x) = \frac{1}{1+e^{-x}},
+$$
+cujo gráfico é apresentado abaixo.
+```{r, echo = FALSE, fig.width = 10, fig.height = 6}
+f_log <- function(x){1/(1+exp(-x))}
+curve(f_log, -10, 10)
+```
+
+Com a função logística em mãos podemos rescrever nossa função objetivo como
+
+$$
+SQ_{logit}(\boldsymbol{\beta}) = \sum_{i=1}^n \left(y_i - \frac{1}{(1+ e^{-(\beta_0 + \beta_1 renda_i + \beta_2 anos_i)} )} \right)^2.
+$$
+Novamente, podemos facilmente otimizar essa função objetivo, ou seja,
+encontrar $\beta_0$, $\beta_1$ e $\beta_2$ que tornam $SQ_{logit}$ 
+o menor possível. Novamente escrevemos a função objetivo
+
+```{r,}
+f_logit <- function(par, y, renda, anos) {
+  mu <- 1/(1+ exp(- (par[1] + par[2]*renda + par[3]*anos)))
+  SQ_logit <- sum( (y - mu)^2 )
+  return(SQ_logit)
+}
+```
+
+Otimizamos numéricamente.
+
+```{r,}
+fit_logit_ols <- optim(par = c(0,0,0), fn = f_logit, y = dados$Premium, 
+                 renda = dados$Renda, anos = dados$Anos)
+fit_logit_ols
+```
+
+Plotando os preditos contra os observados.
+
+```{r, echo = FALSE, fig.width = 10, fig.height = 6}
+eta <- fit_logit_ols$par[1] + fit_logit_ols$par[2]*dados$Renda + fit_logit_ols$par[3]*dados$Anos 
+preditos <- 1/(1+exp(-eta))
+plot(dados$Premium ~ preditos, ylab = "Observado", xlab = "Predito")
+```
+Neste caso fica claro que nosso modelo só prediz valores no
+intervalo unitário como gostaríamos. Claramente quanto maior é o preditor
+maior é a chance dos observados serem $1$ como queríamos.
+
+## Melhorando a função objetivo
+
+Apesar de melhor que a estratégia anterior, essa abordagem ainda faz uso
+uso da perda quadrática. Isso significa assumimos que nossos erros são 
+simétricos ao redor da curva ajustada, neste caso a logística. 
+Entretanto, tal suposição não reflete o fato de que nas caudas da curva 
+os erros não podem ser simétricos. Por exemplo, no extremo da cauda 
+esquerda (baixa renda e pouca experiência) só podemos errar para mais, 
+enquanto que no extremo da cauda direita só podemos errar para menos. 
+Assim, seria interessante termos uma função objetivo que melhor 
+represente nossa intuição.
+
+Para construir uma função objetivo que atenda a nossa intuição, podemos
+recorrer a uma distribuição de probabilidade adequada para dados binários.
+A distribuição Bernoulli modela variáveis aleatórias que podem assumir
+apenas dois valores $0$ ou $1$, sendo $1$ chamado de sucesso e $0$ de
+fracasso. A distribuição Bernoulli, tem a seguinte função de probabilidade
+$$
+P(Y = y_i) = p^{y_i}(1-p)^{1-y_i},
+$$
+onde $p$ é a probabilidade de sucesso, ou seja, $P(Y = 1) = p$. 
+
+Para um conjunto de $n$ observações cada uma sendo binária, podemos
+usar o produto das funções de probabilidade como uma função objetivo a 
+ser maximizada neste caso. 
+Note que a função de probabilidade fornece a probabilidade da variável 
+aleatória assumir um certo valor dado um valor para $p$. 
+Uma vez que temos os dados observados $y_i$ a única quantidade
+desconhecida é o valor de $p$. E a nossa função objetivo fornece a 
+probabilidade de observar os dados REALMENTE observados $y_i$ caso o 
+valor do $p$ seja um valor fixado. 
+O objetivo é encontrar $\hat{p}$ que maximiza essa probabilidade,
+ou seja, de observar o que você REALMENTE observou. 
+Essa é a idéia por traz de um dos métodos mais populares e poderosos 
+de estimação chamado método de máxima verossimilhança que vamos ver 
+no decorrer do curso.
+
+Como $p$ é a probabilidade de sucesso, neste caso o usuário ser 
+assinante \textit{premium}, podemos descrever tal probabilidade de 
+acordo com as características dos usuários, neste caso renda e anos de experiência. 
+Uma vez que $p$ é uma probabilidade só pode assumir valores no intervalo 
+unitário, assim usando a função logística podemos descrever/modelar 
+$p$ pela seguinte equação:
+
+$$
+p_i = \frac{1}{1+e^{-(\beta_0 + \beta_1 renda_i + \beta_2 anos)}}.
+$$
+Substituindo na equação acima chegamos a seguinte função objetivo
+$$
+L(\boldsymbol{\beta}) = \prod_{i=1}^n p_i^{y_i}(1-p_i)^{1-y_i}.
+$$
+
+Entretanto, em termos computacionais usar o produto de números entre
+$0$ e $1$ é incoveniente, porque conforme o número de termos sendo
+multiplicado cresce a função objetivo vai rapidamente para zero.
+Assim, é mais conveniente computacionalmente usar o logaritmo do
+produto das funções de probabilidade o que resulta na seguinte função
+objetivo:
+$$
+l(\boldsymbol{\beta}) = \sum_{i=1}^n y_i \log(p_i) + (1-y_i)\log(1-p_i).
+$$
+Essa função objetivo reflete o fato dos erros não serem simétricos ao
+redor do modelo ajustado e na sequência vamos ver como também fornece
+uma série de propriedades interessantes do ponto de vista de estatística.
+
+Para finalizar, vamos implementar essa nova função objetivo e otimizá-la
+numéricamente. A função em *R* fica dada por
+
+```{r,}
+f_ber <- function(par, y, renda, anos) {
+  eta = par[1] + par[2]*renda + par[3]*anos
+  p <- 1/(1+exp(-eta))
+  out <- sum(y*log(p) + (1-y)*log(1-p))
+  return(out)
+}
+```
+Fazendo a otimização numericamente, temos
+```{r,}
+fit_ber <- optim(par = c(0,0,0), fn = f_ber, y = dados$Premium, 
+                 renda = dados$Renda, anos = dados$Anos, 
+                 control = list(fnscale = -1))
+fit_ber
+```
+Note que neste caso temos que maximizar a função objetivo, por isso
+usamos o argumento adicional da função *optim()* *fnscale = -1* para
+tornar o problema de minimização, uma vez, que por *default* a função
+*optim()* minimiza a função objetivo. Podemos, novamente calcular os
+preditos usando esse novo modelo.
+
+```{r, echo = FALSE, fig.width = 10, fig.height = 6}
+eta <- fit_ber$par[1] + fit_ber$par[2]*dados$Renda + fit_ber$par[3]*dados$Anos
+preditos2 <- 1/(1+exp(-eta))
+plot(dados$Premium ~ preditos, ylab = "Observado", xlab = "Predito")
+```
+
+Caso fosse de interesse, podemos até comparar os preditos obtidos 
+por cada uma das abordagens. Por exemplo,
+
+```{r, echo = FALSE, fig.width = 10, fig.height = 6}
+plot(preditos2 ~ preditos, ylab = "Logistico", xlab = "Não-Linear Logistico")
+```
+
+Neste caso, vemos uma grande similaridade entre os dois classificadores.
+Para classificar, podemos definir um limiar por exemplo, se $\hat{p} < l1$
+dizemos que o usuário não é \textit{premium} e caso contrário, ou seja,
+se $\hat{p} > l1$ o usuário é \textit{premium}.
+
+É importante notar que nos fomos passo-a-passo tornando nosso modelo
+mais condizente com a realidade e consequentemente atendendo às nossas
+intuições de como a realidade deve ser. O uso da função Bernoulli para
+construir a função objetivo combinada com a função logística é o que
+se denomina de modelo de regressão logística na literatura estatística.
+
+## Melhorando o algoritmo de ajuste
+
+Uma vez que o modelo foi definido e a função objetivo escolhida o processo
+de treinamento ou ajuste do modelo consiste em um problema de otimização
+numérica. Até o momento, nos simplesmente usamos otimizadores genéricos
+já implementados na função *optim()* do software *R*. 
+
+Como já discutimos a otimização de uma função pode ser feita de diversas
+formas. Nos exemplos anteriores nos usamos o algoritmo de Nelder-Mead
+que não depende de derivadas. O algoritmo de Newton é o mais eficiente
+em termos de número de iterações para atingir a convergência. 
+Sendo assim, vamos agora discutir como implementar o algoritmo de Newton
+para o modelo de regressão logística. Lembre-se que a função a ser
+otimizada é 
+
+$$
+l(\boldsymbol{\beta}) = \sum_{i=1}^n y_i \log(p_i) + (1-y_i)\log(1-p_i).
+$$
+
+O algoritmo de Newton trabalha com a seguinte equação de iteração
+
+$$ \boldsymbol{\beta^{(i+1)}} = \boldsymbol{\beta^{(i)}} - \mathbf{J(\boldsymbol{\beta^{(i)}})}^{-1} l'(\boldsymbol{\beta^{(i)}}),$$
+onde $\mathbf{J(\boldsymbol{\beta^{(i)}})}$ é uma matriz hessiana de 
+dimensão $3 \times 3$ e $l'(\boldsymbol{\beta^{(i)}})$ é vetor gradiente 
+de dimensão $3 \times 1$. Precisamos, de um vetor inicial $\boldsymbol{\beta}^{(1)}$
+para o vetor de parâmetros $3 \times 1$ no caso do nosso exemplo.
+O vetor gradiente é dado por
+$$
+l'(\boldsymbol{\beta^{(i)}}) = \left(\frac{\partial l'(\boldsymbol{\beta})}{\partial \beta_0},\frac{\partial l'(\boldsymbol{\beta})}{\partial \beta_1}, \frac{\partial l'(\boldsymbol{\beta})}{\partial \beta_2} \right)^{\top}.
+$$
+Para obter cada uma das entradas do vetor gradiente usamos as regras
+básicas de derivação associadas a regra da cadeia. Para simplificar a 
+notação, seja $\eta_i = \beta_0 + \beta_1 renda_i + \beta_2 Anos_i$.
+Assim, tem-se
+$$
+\frac{\partial l'(\boldsymbol{\beta})}{\partial \beta_j} = \frac{\partial l'(\boldsymbol{\beta})}{\partial p} \frac{\partial p}{\partial \eta} \frac{\partial \eta}{\partial \beta_j}, \quad \text{para} \quad j = 1, 2, 3.
+$$
+Obtendo cada uma das entradas, tem-se
+$$
+\frac{\partial l'(\boldsymbol{\beta})}{\partial p} = \frac{\partial}{\partial p}  y_i \log(p_i) + (1-y_i)\log(1-p_i) = \frac{y_i}{p_i} - \frac{(1-y_i)}{(1-p_i)} = \frac{y_i - p_i}{p_i(1-p_i)}. 
+$$
+
+Derivando o $p$ em relação ao $\eta$, tem-se
+
+$$
+\frac{\partial p}{\partial \eta} = \frac{\partial}{\partial \eta} \frac{1}{1+ e^{-\eta}} = \frac{e^{-\eta}}{(1+e^{-\eta})^2} = p_i(1-p_i).
+$$
+Derivando $\eta$ em relação aos $\beta$'s temos
+$$
+\frac{\partial \eta}{\beta_0} = 1, \quad \frac{\partial \eta}{\beta_1} = renda_i \quad \text{e} \quad \frac{\partial \eta}{\beta_2} = anos_i.
+$$
+Finalmente, temos o vetor gradiente
+$$
+l'(\boldsymbol{\beta^{(i)}}) = \left(\sum_{i=1}^n (y_i - p_i)1, \sum_{i=1}^n (y_i - p_i)renda_i, \sum_{i=1}^n (y_i - p_i)anos_i  \right)^{\top}.
+$$
+
+Usando cálculos similares, podemos obter a matriz hessiana. Lembre-se,
+não deixe as derivadas te assustar, use um software de matemática simbólica 
+caso não se sinta comfortável com os resultados.
+
+$$
+\mathbf{J(\boldsymbol{\beta})} = -
+\begin{bmatrix}
+p_i(1-p_i)1 & p_i(1-p_i)renda_i & p_i(1-p_i)anos_i \\ 
+p_i(1-p_i)renda_i & p_i(1-p_i)renda_i^2  & p_i(1-p_i)renda_i anos_i \\ 
+p_i(1-p_i)anos_i & p_i(1-p_i)renda_i anos_i & p_i(1-p_i)anos_i^2
+\end{bmatrix}.
+$$
+
+Uma vez obtidos o gradiente e o hessiano, podemos implementar ambas
+funções em *R*.
+
+```{r,}
+# Gradiente
+gradiente <- function(par, y, renda, anos) {
+  eta = par[1] + par[2]*renda + par[3]*anos
+  p <- 1/(1+exp(-eta))
+  db0 <- sum((y - p))
+  db1 <- sum((y-p)*renda)
+  db2 <- sum((y-p)*anos)
+  out <- c(db0, db1, db2)
+  return(out)
+}
+# Hessiana
+hessiano <- function(par, y, renda, anos) {
+  J <- matrix(NA, ncol = 3, nrow = 3)
+  eta = par[1] + par[2]*renda + par[3]*anos
+  p <- 1/(1+exp(-eta))
+  J[1,1] <- sum(p*(1-p)) 
+  J[1,2] <- sum(p*(1-p)*renda) 
+  J[1,3] <- sum(p*(1-p)*anos)
+  J[2,1] <- sum(p*(1-p)*renda) 
+  J[2,2] <- sum(p*(1-p)*(renda^2) )
+  J[2,3] <- sum(p*(1-p)*renda*anos)
+  J[3,1] <- sum(p*(1-p)*anos) 
+  J[3,2] <- sum(p*(1-p)*(renda*anos)) 
+  J[3,3] <- sum(p*(1-p)*(anos^2))
+  return(-J)
+}
+```
+
+O método de Newton foi discutido e implementado, assim podemos usar
+a nossa função.
+
+```{r, }
+newton <- function(fx, jacobian, x1, tol = 1e-04, max_iter = 10, ...) {
+  solucao <- matrix(NA, ncol = length(x1), nrow = max_iter)
+  solucao[1,] <- x1
+  for(i in 1:max_iter) {
+    J <- jacobian(solucao[i,], ...)
+    grad <- fx(solucao[i,], ...)
+    solucao[i+1,] = solucao[i,] - solve(J, grad)
+    if( sum(abs(solucao[i+1,] - solucao[i,])) < tol) break
+  }
+  return(solucao)
+}
+```
+
+Otimizando a função, tem-se
+
+```{r, echo = FALSE, fig.width = 10, fig.height = 6}
+newton(fx = gradiente, jacobian = hessiano, x1 = c(0,0,0), y = dados$Premium, 
+       renda = dados$Renda, anos = dados$Anos)
+```
+
+Pelo traço do algoritmo é fácil verificar a convergência.
+Recomendo como exercício implementar o mesmo modelo usando o algoritmo
+gradiente descendente e o método quasi-Newton BFGS.

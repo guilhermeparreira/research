@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+
+
+<question type="category">
+<category>
+<text>$course$/M1Ex1/Exercise 1</text>
+</category>
+</question>
+
+
+<question type="multichoice">
+<name>
+<text> Q1 : Ex1 </text>
+</name>
+<questiontext format="html">
+<text><![CDATA[<p>
+<p>Analise as sentenças abaixo e marque APENAS as verdadeiras.</p>
+</p>]]></text>
+</questiontext>
+<generalfeedback format="html">
+<text><![CDATA[<p>
+<p>Solução abaixo:</p>
+<ol type = "a">
+<li> Verdadeira. </li>
+<li> Falso </li>
+<li> Verdadeira. </li>
+<li> Falso. </li>
+<li> Verdadeira. </li>
+<li> Verdadeira. </li>
+<li> Falso. </li>
+<li> Falso. </li>
+<li> Verdadeira. </li>
+<li> Falso. </li>
+</ol>
+</p>]]></text>
+</generalfeedback>
+<penalty>0</penalty>
+<defaultgrade>1</defaultgrade>
+<shuffleanswers>false</shuffleanswers>
+<single>false</single>
+<answernumbering>abc</answernumbering>
+<answer fraction="20" format="html">
+<text><![CDATA[<p>
+<span class="math inline">\(\int \frac{1}{x} + \sqrt{x} dx = \log(x) + \frac{2}{3} x^{2/3}.\)</span>
+</p>]]></text>
+<feedback format="html">
+<text><![CDATA[<p>
+Verdadeira.
+</p>]]></text>
+</feedback>
+</answer>
+<answer fraction="-20" format="html">
+<text><![CDATA[<p>
+Uma matriz <span class="math inline">\(A\)</span> de dimensão <span class="math inline">\(n \times q\)</span> pode ser multiplicada por outra matriz <span class="math inline">\(B\)</span> de dimensão <span class="math inline">\(q \times m\)</span> e a matriz <span class="math inline">\(C\)</span> resultante da multiplicação é de dimensão <span class="math inline">\(q \times q\)</span>.
+</p>]]></text>
+<feedback format="html">
+<text><![CDATA[<p>
+Falso
+</p>]]></text>
+</feedback>
+</answer>
+<answer fraction="20" format="html">
+<text><![CDATA[<p>
+A equação da reta tangente a função <span class="math inline">\(f(x) = \log(x)\)</span> no ponto <span class="math inline">\(x = 2\)</span> é dada por <span class="math inline">\(y = (\log(2) - 1) + 0.5x\)</span>.
+</p>]]></text>
+<feedback format="html">
+<text><![CDATA[<p>
+Verdadeira.
+</p>]]></text>
+</feedback>
+</answer>
+<answer fraction="-20" format="html">
+<text><![CDATA[<p>
+Uma função <span class="math inline">\(y = \frac{x^2 - 4}{x - 2}\)</span> é contínua no ponto <span class="math inline">\(x=2\)</span>.
+</p>]]></text>
+<feedback format="html">
+<text><![CDATA[<p>
+Falso.
+</p>]]></text>
+</feedback>
+</answer>
+<answer fraction="20" format="html">
+<text><![CDATA[<p>
+A derivada da função <span class="math inline">\(f(x) = (3x^2 - 1)\exp^{x}\)</span> é dada por <span class="math inline">\(f^{\prime}(x) = (3x^2 -1)\exp^{x} + 6x \exp^{x}\)</span>.
+</p>]]></text>
+<feedback format="html">
+<text><![CDATA[<p>
+Verdadeira.
+</p>]]></text>
+</feedback>
+</answer>
+<answer fraction="20" format="html">
+<text><![CDATA[<p>
+Usando a soma de Riemann com 100 retâgulos a <span class="math inline">\(\int_0^{100} x \exp^{-x/5} dx = 25.0424.\)</span>
+</p>]]></text>
+<feedback format="html">
+<text><![CDATA[<p>
+Verdadeira.
+</p>]]></text>
+</feedback>
+</answer>
+<answer fraction="-20" format="html">
+<text><![CDATA[<p>
+Considere dois vetores <span class="math inline">\(x = (0,2,4,8)\)</span> e <span class="math inline">\(y = (1,3,5,7)\)</span>. O produto interno de <span class="math inline">\(x\)</span> e <span class="math inline">\(y\)</span> é o vetor <span class="math inline">\(z = (0,6,20,56)\)</span>.
+</p>]]></text>
+<feedback format="html">
+<text><![CDATA[<p>
+Falso.
+</p>]]></text>
+</feedback>
+</answer>
+<answer fraction="-20" format="html">
+<text><![CDATA[<p>
+A derivada da função <span class="math inline">\(f(x) = \log(x^2 + 3x + 9)\)</span> é dada por <span class="math inline">\(f^{\prime}(x) = \frac{1}{x^2 + 3x + 9}\)</span>.
+</p>]]></text>
+<feedback format="html">
+<text><![CDATA[<p>
+Falso.
+</p>]]></text>
+</feedback>
+</answer>
+<answer fraction="20" format="html">
+<text><![CDATA[<p>
+A derivada de uma função pode ser interpretada com a taxa de mudança instântanea, além de ser o coeficiente angular da reta tangente ao gráfico de <span class="math inline">\(f(x)\)</span> em um ponto <span class="math inline">\(a\)</span> qualquer.
+</p>]]></text>
+<feedback format="html">
+<text><![CDATA[<p>
+Verdadeira.
+</p>]]></text>
+</feedback>
+</answer>
+<answer fraction="-20" format="html">
+<text><![CDATA[<p>
+O ponto de mínimo do logaritmo da função <span class="math inline">\(f(x) = x \exp^{-10x}\)</span> é obtido em <span class="math inline">\(x = \frac{1}{10}\)</span>.
+</p>]]></text>
+<feedback format="html">
+<text><![CDATA[<p>
+Falso.
+</p>]]></text>
+</feedback>
+</answer>
+</question>
+
+</quiz>

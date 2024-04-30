@@ -1,0 +1,61 @@
+---
+title: "Introdução ao Cálculo Diferencial Integral"
+author: "Prof. Wagner Hugo Bonat"
+date: '2019'
+output: pdf_document
+---
+
+```{r, cache=FALSE, include=FALSE}
+source("config/setup.R")
+```
+
+Exercícios para fixação, recomendo que usem o $\texttt{R}$ e/ou o 
+$\texttt{wxMaxima}$ para auxiliar e verificar suas respostas.
+
+# Lista 1 - Derivadas e aproximação em séries de Taylor
+
+1. Use o $\texttt{R}$ ou $\texttt{python}$ para desenhar o gráfico das seguintes funções. Identifique o que o parâmetro controla da função. Tenha cuidado com o domínio de cada função.
+
+a) $f(x; \theta) = 2 \left (  x \log \frac{x}{\theta} - x + \theta  \right )$.
+b) $f(x; \theta) = \binom{100}{x} \exp \left \{ x \log \frac{\theta}{1-\theta} + 100 \log (1 - \theta) \right \}$.
+c) $f(x; \theta) = 2\left (  \frac{x}{\theta} - \log \left \{  \frac{x}{\theta} \right \} -1 \right )$.
+d) $f(x; \theta, p) = 2\left \{ \frac{x^{(2-p)}}{(1-p)(2-p)} - \frac{x \theta^{(1-p)}}{1-p} + \frac{\theta^{(2-p)}}{2-p} \right \}$.
+e) $f(x; \theta, p) = 2\left \{ 1- \cos(x - \theta) \right \}$.
+
+
+2. Para cada uma das equações do exercício 1 trace o gráfico da reta
+tangente em ao menos três pontos que considere adequado.
+
+3. Aproxime as seguintes funções usando a expansão de Taylor de segunda
+ordem. Esboce o gráfico da função e da aproximação.
+
+a) $\sum_{i=1}^n (y_i - \mu)^2$. Fixe $y_i = 2.09;-1.32;-0.20;0.05;-0.07$.
+b) $\sum_{i=1}^n 2 \left ( y_i \log \frac{y_i}{\mu} + \mu - y_i \right )$. 
+Fixe $y_i = 7;4;4;6;5$.
+c) $\sum_{i=1}^n 2 \left ( \frac{y_i}{\mu} - \log \frac{y_i}{\mu} - 1 \right )$. 
+Fixe $y_i = 2.35;0.16;0.56;1.05;0.51$.
+d) $\sum_{i=1}^n 2 \left ( y_i \log \frac{y_i}{\mu} + (1- y_i) \log \frac{1-y_i}{1-\mu} \right )$.
+Fixe $y_i = 1;0;1;1;1$.
+e) $\sum_{i=1}^n 2 \left ( y_i \log \frac{y_i}{\mu} + (m + y_i) \log \frac{m + \mu}{m + y_i} \right)$. Fixe $m = 1$ e $y_i = 7;4;4;6;5$.
+
+4. Considerando as funções apresentadas no exercício 5 identifique o
+ponto de inflexão e verique se é um ponto de máximo ou mínimo.
+
+5. Sejam $y_i$ valores observados para $i = 1, \ldots, n$. Considere
+a função perda absoluta dada por
+$$ f(\mu) = \sum_{i=1}^n | y_i - \mu|.$$
+
+a) Usando o $\texttt{R}$ ou qualquer outro software conveniente, simule 
+um conjunto de valores adequado para $y_i$.
+b) Esboce o gráfico da função perda para este conjunto de dados e diferente valores de $\mu$.
+c) Encontre o valor de $\mu$ que miniza a função perda absoluta.
+d) Discuta quando a funçao perda absoluta pode ser mais conveniente do que a função perda quadrática.
+
+6. Sejam $y_i$ e $x_i$ valores observados para $i = 1, \ldots, n$. Considere o problema de ajustar uma reta relacionando $y_i$ com $x_i$, usando a função perda absoluta
+$$ f(\beta_0,\beta_1) = \sum_{i=1}^n | y_i - (\beta_0 + \beta_1 x_i)|.$$
+
+a) Usando o $\texttt{R}$ ou qualquer outro software conveniente, simule 
+um conjunto de valores adequado para $y_i$ fixado um vetor para $x_i$ .
+b) Esboce o gráfico da função perda para este conjunto de dados e diferentes valores de $\beta_0$ e $\beta_1$.
+c) Encontre o valor de $\beta_0$ e $\beta_1$ que miniza a função perda absoluta.
+d) Discuta quando a função perda absoluta pode ser mais conveniente do que a função perda quadrática.

@@ -1,0 +1,81 @@
+```{r, echo = FALSE, results = "hide"}
+```
+
+Question
+========
+Analise as sentenças abaixo e marque APENAS as verdadeiras.
+
+Answerlist
+----------
+* Considere a seguinte função: $f(x) = \frac{(20 - x)^2}{20 x^2}$. 
+A aproximação em série de Taylor de segunda ordem ao redor do ponto
+$x = 20$ é dada por $f(x) \approx \frac{(x - 20)^2}{8000}.$
+* Considere as matrizes $A = \begin{bmatrix}
+2 & -2 & -1 \\ 
+5 & 0 & 8\\ 
+3 & 4 & 7
+\end{bmatrix}$ e $B = \begin{bmatrix}
+1 & -6 & -1 \\ 
+-4 & 8 & 3\\ 
+8 & 5 & -7
+\end{bmatrix}.$ A matriz $C = AB$ é dada por
+$C = \begin{bmatrix}
+-31 & -6 & -56 \\ 
+41 & 20 & 89\\ 
+20 & -44 & -17
+\end{bmatrix}.$
+* Considere o seguinte sistema linear é 
+$$
+\begin{matrix}
+4x_1 - 2x_2 - 3x_3 + 6x_4 = 12 \\ 
+-6x_1 + 7x_2 + 6.5x_3 - 6x_4 = -6.5 \\
+x1 + 7.5x_2 + 6.25x_3 + 5.5 x_4 = 16 \\
+-12x_1 + 22x_2 + 15.5x_3 - x4 = 17
+\end{matrix}. 
+$$
+A solução é dada por $x_1 = 2, x_2 = 4, x_3 = -3, x_4 = 5$.
+
+* A decomposição de $LU$ da matriz $A = \begin{bmatrix}
+1 & 0.8 & 0.6\\ 
+0.8 & 1 & 0.4\\ 
+0.6 & 0.4 & 1
+\end{bmatrix}$ é dada por
+$$
+L = \begin{bmatrix}
+1 & 0   & 0\\ 
+0.8 & 1 & 0\\ 
+0.6 & -0.22 & 1
+\end{bmatrix} \quad \text{and} \quad
+U = \begin{bmatrix}
+1 & 0.8   & 0.6\\ 
+0 & 0.36 & -0.08\\ 
+0 & 0 & 0.62
+\end{bmatrix}.
+$$
+* Considere o seguinte sistema de equações não-lineares
+$$
+\begin{matrix}
+4x^2  - y^3 + 28 = 0 \\ 
+3x^3 + 4y^2 - 145 = 0 \\
+\end{matrix},
+$$
+a solução usando o método de Newton é x = 3 e y = 4.
+
+Solution
+========
+Solução abaixo:
+
+Answerlist
+----------
+* Verdadeiro.
+* Falso.
+* Falso.
+* Verdadeiro.
+* Verdadeiro.
+
+Meta-information
+================
+exname: Aproximaçao por Taylor, Multiplicaçao e decomposiçao de matrizes.
+extype: mchoice
+exsolution: 10011
+exshuffle: 5

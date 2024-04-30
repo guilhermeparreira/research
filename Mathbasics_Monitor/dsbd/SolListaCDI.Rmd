@@ -1,0 +1,1152 @@
+---
+title: "Introdução ao Cálculo Diferencial Integral para Ciência de Dados"
+author: "Prof. Wagner Hugo Bonat \\ Solução: Guilherme Parreira"
+date: '2019'
+output: html_document
+subtitle: 'SOLUÇÃO EXERCÍCIOS SELECIONADOS'
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, cache=FALSE, include=FALSE}
+# source("config/setup.R")
+```
+
+```{r}
+library(ggplot2)
+library(reshape2)
+```
+
+# Funções Limites e Continuidade
+
+## Use o $\texttt{R}$ ou $\texttt{python}$ para desenhar o gráfico das seguintes funções.
+
+Para resolver os exercícios seguintes é necessário estipular um grid (uma sequência) de valores para *x* e aplicar na função solicitada. O que é necessário prestar atenção é o domínio de cada função. Por exemplo, a raiz quadrada $\sqrt{x}$ não aceita valores negativos, então $x \ge 0$. Já as funções $log_e$ e $log_{10}$ demandam de valores maiores que 0. Para $f(x) = \frac{x+1}{x}$ recebe valores do $-\infty$ até $+\infty$, exceto o 0. Algumas letras serão resolvidas explícitamente e outras serão feitas de forma conjunta.
+
+a) $f(x) = \sqrt{x}$.
+
+```{r}
+x <- 0:100
+plot(sqrt(x) ~ x, type = "l")
+```
+
+b) $f(x) = \log(x)$.
+```{r}
+x <- 1:100
+plot(log(x) ~ x, type = "l")
+```
+
+c) $f(x) = \log_{10}(x)$.
+```{r}
+x <- 1:100
+plot(log10(x) ~ x, type = "l")
+```
+
+d) $f(x) = \exp(x)$.
+```{r}
+x <- -5:30
+plot(exp(x) ~ x, type = "l")
+```
+
+e) $f(x) = \Gamma(x)$.
+
+$$f(x) = \Gamma(x) = (x-1)!$$
+
+```{r}
+x <- 1:10
+plot(gamma(x) ~ x, type = "l")
+```
+
+f) $f(x) = \frac{1}{x}$.
+```{r}
+x <- c(-10:10)
+plot(1/x ~ x, type = "l")
+```
+
+Note como essa função não aceita o valor de 0 para x, não existe valor da f(x) para x = 0.
+
+g) $f(x) = |x-1| + 2$.
+```{r}
+x <- c(-10:10)
+plot(abs(x-1)+2 ~ x, type = "l")
+```
+
+
+h) $f(x) = beta(x,0.5)$.
+
+A função beta pode ser reescrita da seguinte forma:
+
+$$B(x,y) = \frac{\Gamma(x)\Gamma(y)}{\Gamma(x+y)}$$
+
+```{r}
+x <- c(1:10)
+plot(beta(x, 0.5) ~ x, type = "l")
+```
+
+i) $f(x) = (x-1)^3$.
+```{r}
+x <- c(-10:10)
+plot((x-1)^3 ~ x, type = "l")
+```
+
+
+j) $f(x) = \frac{x+1}{x}$.
+```{r}
+x <- c(-10:10)
+plot((x+1)/x ~ x, type = "l")
+```
+
+Novamente, eu opto para colocar o valor de 0 no *x* para que no gráfico fique evidente que não exista o valor de f(x) para x = 0. Mas é importante lembrar que $f(0) \nexists$.
+
+k) EXTRA: Colocar todos os gráficos em uma única janela
+
+Para isso, irei utilizar um único grid de valores para todos os valores de $x$. As funções cujo para um dado valor de $x$ elas não existam, serão substituídas por $NA$.
+
+```{r, warning=FALSE}
+x <- seq(-300, 300, length.out = 300)
+df <- data.frame(x = x,
+           sqrt.x = sqrt(x),
+           ln.x = log(x),
+           log10.x = log10(x),
+           exp.x = exp(x),
+           gamma.x = gamma(x),
+           inv.x = 1/x,
+           mod.x = abs(x-1)+2,
+           beta = beta(x, 0.5),
+           cube = (x-1)^3,
+           f.x = (x+1)/x
+)
+df.l <- reshape2::melt(df, id.vars = "x")
+df.l$value <- ifelse(is.nan(df.l$value), NA, df.l$value)
+```
+
+### Gráfico conjunto
+```{r, warning=FALSE}
+# Todos exceto gamma
+  ggplot(data = df.l[!df.l$variable%in%c("gamma.x"), ], aes(x = x, y = value)) +
+    geom_line() +
+    facet_wrap(~variable, scale = "free_y")
+```
+
+A função gamma foi omitida em virtude dos eixos dos gráficos. A partir da figura anterior, é rápido visualizar as características principais de cada função.
+
+## Use o $\texttt{R}$ ou $\texttt{python}$ para desenhar o gráfico das seguintes funções. Identifique o que o parâmetro controla da função. Tenha cuidado com o domínio de cada função.
+
+a) $f(x; \theta) = 2 \left (  x \log \frac{x}{\theta} - x + \theta  \right )$.
+
+```{r}
+fx.a <- function(x, theta){
+  2*(x*log(x/theta) -x + theta)
+}
+df <- data.frame(x = rep(1:50, 3),
+                 theta = rep(c(10, 20, 30), each = 50))
+df$y <- fx.a(df$x, df$theta)
+df$theta <- as.factor(df$theta)
+ggplot(data = df, aes(x = x, y = y, color = theta)) +
+  geom_line()
+
+# Forma mais "tradicional"
+# fx.a <- Vectorize(fx.a, "x")
+# x <- 1:40
+# y <- fx.a(x, 20)
+# plot(y ~ theta, type = "l")
+# lines(x, fx.a(x, 30), col = "green")
+# lines(x, fx.a(x, 10), col = "red")
+# legend(x = 20, y = 30, legend = "topright", )
+
+```
+ 
+Para um conjunto "x" fixado, o $\theta$ é aquele que minimiza o valor da função
+
+b) $f(x; \theta) = \binom{100}{x} \exp \left \{ x \log \frac{\theta}{1-\theta} + 100 \log (1 - \theta) \right \}$.
+
+```{r}
+fx.2b <- function(x, theta){
+  choose(100, x)*exp((x*log(theta/(1-theta)) + 100*log(1-theta)))
+}
+df <- data.frame(x = rep(1:100, times = 5),
+                 theta = rep(c(0.01, 0.1, 0.3, 0.5, 0.9), each = 100))
+df$y <- fx.2b(df$x, df$theta)
+df$theta <- as.factor(df$theta)
+ggplot(data = df, aes(x = x, y = y, color = theta)) +
+  geom_line()
+```
+
+O valor de $\theta$ é aquele que maximiza o valor da função.
+
+c) $f(x; \theta) = 2\left (  \frac{x}{\theta} - \log \left \{  \frac{x}{\theta} \right \} -1 \right )$.
+
+```{r}
+fx.2c <- function(x, theta){
+  2*((x/theta) - log(x/theta) -1)
+}
+
+df <- data.frame(x = rep(1:100, times = 5),
+                 theta = rep(c(10, 25, 50, 75, 90), each = 100))
+df$y <- fx.2c(df$x, df$theta)
+df$theta <- as.factor(df$theta)
+ggplot(data = df, aes(x = x, y = y, color = theta)) +
+  geom_line()
+```
+
+O valor de $\theta$ é aquele que minimiza o valor da função.
+
+d) $f(x; \theta, p) = 2\left \{ \frac{x^{(2-p)}}{(1-p)(2-p)} - \frac{x \theta^{(1-p)}}{1-p} + \frac{\theta^{(2-p)}}{2-p} \right \}$.
+
+```{r}
+fx.2d <- function(x, theta, p){
+   2*((x^(2-p))/((1-p)*(2-p)) - (x*(theta^(1-p)))/(1-p) + (theta^(2-p))/(2-p))
+}
+df <- expand.grid(p = seq(1.05,1.95,length.out = 3),
+                  theta = c(3, 7, 13, 17),
+                  x = 1:20)
+df$y <- fx.2d(df$x, df$theta, df$p)
+df$theta <- as.factor(round(df$theta,2))
+df$p <- as.factor(round(df$p,2))
+ggplot(data = df, aes(x = x, y = y, color = theta, linetype = p)) +
+  geom_line()
+```
+
+Para essa função, é necessário que 1 < p < 2. O valor de $\theta$ controla o mínimo da função, enquanto que $p$ controla o peso que a função aloca para valores próximos de 0 para x (quanto maior o valor de p, maior o peso para menores valores de x)..
+
+
+e) $f(x; \theta, p) = 2\left \{ 1- \cos(x - \theta) \right \}$.
+
+```{r}
+fx.e <- function(x, theta){
+  2*(1-cos(x-theta))
+}
+df <- data.frame(x = rep(seq(0, 2*pi, length.out = 40), 5),
+                 theta = rep(c(0, pi/2, pi, 3*(pi/2), 2*pi), each = 40))
+df$y <- fx.e(df$x, df$theta)
+df$theta <- as.factor(round(df$theta,2))
+ggplot(data = df, aes(x = x, y = y, color = theta)) +
+  geom_line()
+```
+
+Como a função cosseno é periódica, o valor de $\theta$ indica a periodicidade da função cosseno.
+
+## Obtenha o limite e esboçe o gráfico.
+
+a) $\lim_{x \to 0 } ( \sqrt{x} + x)$.
+
+Para resolver esse limite, basta substituir o valor 0 no *x*, pois não gera nenhuma indeterminação.
+
+$\lim_{x \to 0 } ( \sqrt{x} + x) = \sqrt(0) + 0 = 0 + 0 = 0$
+
+```{r}
+fx.3a <- function(x){
+  sqrt(x) + x
+}
+df <- data.frame(x = 0:2)
+df$y <- fx.3a(df$x)
+ggplot(data = df, aes(x = x, y = y)) +
+  geom_line() +
+  geom_point() +
+  geom_vline(xintercept = 0, col = "blue", alpha = 0.4)
+```
+
+A função existe para x = 0, e vale 0.
+
+b) $\lim_{x \to 2 }  \frac{x^2 + x}{ x + 3}$.
+
+$\lim_{x \to 2 }  \frac{x^2 + x}{ x + 3} = \frac{2^2 + 2}{2+3} = \frac{6}{5} = 1.2$.
+
+```{r}
+fx.3b <- function(x){
+  (x^2 + x)/(x + 3)
+}
+df <- data.frame(x = 1:3)
+df$y <- fx.3b(df$x)
+ggplot(data = df, aes(x = x, y = y)) +
+  geom_line() +
+  geom_point() +
+  geom_vline(xintercept = 2, col = "blue", alpha = 0.4)
+# fx.3b(2)
+```
+
+A função existe para esse ponto, e é 1.2.
+
+c) $\lim_{x \to 2 }  \frac{x^2 - 4}{ x - 2}$.
+
+Nessa função é necessário realizar fatoração de polinômios, isto é, reescrever o polinômio de maior ordem em termos do negativo das suas raízes, uma vez que $f(2)$ resulta em uma indeterminação.
+
+$\lim_{x \to 2 }  \frac{x^2 - 4}{ x - 2} = \lim_{x \to 2 } \frac{(x-2)(x+2)}{x-2} = \lim_{x \to 2} x+2 = 2$.
+
+Uma das formas de realizar a fatoração de polinômio é através do algoritmo de $Briot-Ruffini$ ou tentar a utilização de raízes de forma direta (e como esse exercício é de limites, a escolha natural para o valor da raíz do polinômio seria o próprio valor do limite).
+
+```{r, eval = FALSE}
+fx.3c <- function(x){
+  (x^2 - 4)/(x -2)
+}
+df <- data.frame(x = c(0,1,1.9,2,2.1, 3, 4))
+df$y <- fx.3c(df$x)
+ggplot(data = df, aes(x = x, y = y)) +
+  geom_line() +
+  geom_point() +
+  geom_vline(xintercept = 2, col = "blue", alpha = 0.4)
+```
+
+O valor de $f(2)$ tende a 4.
+
+d) $\lim_{x \to -1 }  \frac{x^2 - 1}{ x + 1}$.
+
+$\lim_{x \to -1 }  \frac{x^2 - 1}{ x + 1} = \lim_{x \to -1 }  \frac{(x-1)(x+1)}{ x + 1} = \lim_{x \to -1 }  x + 1 = -1 -1 = -2$
+
+```{r, eval = FALSE}
+fx.3d <- function(x){
+  (x^2 - 1)/(x + 1)
+}
+df <- data.frame(x = c(-2, -1.1, -1, -0.9, 0, 1))
+df$y <- fx.3d(df$x)
+ggplot(data = df, aes(x = x, y = y)) +
+  geom_line() +
+  geom_point() +
+  geom_vline(xintercept = -1, col = "blue", alpha = 0.4)
+```
+
+O valor do limite da função quando x tende a -1 é -2.
+
+e) $\lim_{x \to 0}  \sin(x)$.
+
+$\lim_{x \to 0}  \sin(x) = sin(0) = 0$
+
+```{r}
+fx.3e <- function(x){
+  sin(x)
+}
+df <- data.frame(x = -2:2)
+df$y <- fx.3e(df$x)
+ggplot(data = df, aes(x = x, y = y)) +
+  geom_line() +
+  geom_point() +
+  geom_vline(xintercept = 0, col = "blue", alpha = 0.4)
+```
+
+A função existe para x tendendo a 0, e é igual a 0.
+
+## Usando a definição intuitiva de limite esboçe o gráfico das seguintes funções e avalie se são ou não contínuas.
+
+a) $f(x) = \sqrt{x}$ em $x = 0$.
+```{r}
+x <- 0:100
+plot(sqrt(x)~x, type = "l")
+abline(v = 0, col = "blue")
+```
+
+É contínua
+
+b) $f(x) = \frac{x^2 - 4}{x-2}$ em $x = 2$.
+
+```{r, warning=FALSE}
+fx.4b <- function(x){
+  (x^2 - 4)/(x -2)
+}
+df <- data.frame(x = c(0,1,1.9,2,2.1, 3, 4))
+df$y <- fx.4b(df$x)
+ggplot(data = df, aes(x = x, y = y)) +
+  geom_line() +
+  geom_point() +
+  geom_vline(xintercept = 2, col = "blue", alpha = 0.4)
+```
+Não é contínua.
+
+c) $f(x) = \left\{\begin{matrix} x \quad \text{se} \quad x < 1 \\ \frac{1}{x} \quad \text{se} \quad x > 1 \quad \text{em} \quad x = 1 \end{matrix}\right.$
+
+```{r}
+df <- data.frame(x = -3:3)
+df$y <- with(df, ifelse(x < 1, x, ifelse(x > 1, 1/x, 1)))
+ggplot(data = df, aes(x = x, y = y)) +
+  geom_line() +
+  geom_point() +
+  geom_vline(xintercept = 1, col = "blue", alpha = 0.4)
+# fx.3b(2)
+```
+
+É contínua.
+
+d) $f(x) = \Gamma(x)$ em $x = 2$.
+
+$$\Gamma(n) = (n-1)!$$
+
+```{r}
+df <- data.frame(x = 1:5)
+df$y <- gamma(df$x)
+ggplot(data = df, aes(x = x, y = y)) +
+  geom_line() +
+  geom_point() +
+  geom_vline(xintercept = 2, col = "blue", alpha = 0.4)
+```
+
+É contínua.
+
+e) $f(x) = \frac{|x-2|}{x-2}$ em $x = 2$.
+
+$$\Gamma(n) = (n-1)!$$
+
+```{r, warning=FALSE}
+df <- data.frame(x = -3:3)
+df$y <- with(df, (abs(x-2)/(x-2)))
+ggplot(data = df, aes(x = x, y = y)) +
+  geom_line() +
+  geom_point() +
+  geom_vline(xintercept = 2, col = "blue", alpha = 0.4)
+```
+
+Não é contínua.
+
+# Derivadas
+
+## Calcule a derivada das seguintes funções:
+
+
+Solução: Este exercício pede para calcular derivadas de funções polinomiais. 
+Assim, usaremos uma das quatro fórmulas básicas para derivadas:
+
+1. Se $f(x) = c$ então $f^{\prime}(x) = 0$.
+2. Se $f(x) = x^n$ então $f^{\prime}(x) = n x^{n-1}$.
+3. Se $f(x) = x^{-n}$ então $f^{\prime}(x) = -n x^{-n-1}$.
+4. Se $f(x) = x^{1/n}$ então $f^{\prime}(x) = \frac{1}{n} x^{\frac{1}{n} - 1}$.
+
+a) $f(x) = x^4$.
+
+Solução
+
+Pela equação 2, tem-se
+\begin{equation}
+f^{\prime}(x) = 4 x^{4-1} = 4x^3.
+\end{equation}
+
+b) $f(x) = x^3$. 
+
+Mesmos passos de a). Resultado = $3x^{2}$
+
+c) $f(x) = x^{-3}$.
+
+Utilizando a equação 3: $-3x^{-4} = \frac{-3}{x^4}$
+
+d) $f(x) = \frac{1}{x^5}$.
+
+$$\frac{\partial }{\partial x} \frac{1}{x^5} = \frac{\partial x^{-5}}{\partial x} = -5x^{-6} = \frac{-5}{x^6}$$
+
+e) $f(x) = \sqrt{x}$.
+
+$\frac{\partial }{\partial x} x^{1/2} = ... = \frac{1}{2\sqrt{x}}$
+
+f) $f(x) = \sqrt[3]{x}$.
+
+$\frac{\partial }{\partial x} x^{1/3} = ... = \frac{1}{3\sqrt[3]{x^{2}}}$
+
+g) $f(x) = x^{1/3}$.
+
+Mesma solução de f
+h) $f(x) = \frac{1}{x}$.
+
+$\frac{\partial }{\partial x} \frac{1}{x} = \frac{\partial }{\partial x} x^{-1} = -x^{-2}$
+
+i) $f(x) = \sqrt[8]{x}$.
+
+Mesmos passos de f). Resposta $\frac{1}{8\sqrt[8]{x^{7}}}$
+
+j) $f(x) = \frac{1}{x^2}$.
+
+Mesmos passos de h). Resposta: $\frac{-2}{x^{3}}$
+
+## Determine a reta tangente ao gráfico de $f(x)$ no ponto requisitado e esboce o gráfico de $f(x)$ e da reta tangente.
+
+a) $f(x) = \frac{1}{x}$ no ponto de abscissa 2. 
+
+Solução
+
+- Primeiro passo: Obter a derivada de $f(x)$. Pela Eq. 3 temos que $f^{\prime}(x) = -x^{-2}$. 
+
+- Segundo passo: Calcular os valores de $f(x)$ e $f^{\prime}(x)$ no 
+ponto de abscissa 2. Neste caso temos, $f(x = 2) = \frac{1}{2}$
+e $f^{\prime}(x = 2) = -\frac{1}{2^2} = - \frac{1}{4}$.
+
+- Terceiro passo: Obter o intercepto e a inclinação da reta tangente a $f(x)$.
+Lembre-se (slide 21) que a reta tangente é dada por $y - f(x=2) = f^{\prime}(x = 2)(x - 2)$,
+trabalhando nesta equação tem-se que,
+$$
+y - f(x=2) = f^{\prime}(x=2) x - f^{\prime}(x=2)2 \\
+y - \frac{1}{2} = -\frac{1}{4}x + \frac{2}{4} \\ 
+y = -\frac{1}{4}x + \frac{2}{4} + \frac{1}{2} \\
+y = -\frac{1}{4}x + 1 \\
+$$
+Sendo, assim temos que o intercepto é $1$ e a inclinação é $-\frac{1}{4}$.
+Podemos fazer o gráfico de $f(x) = \frac{1}{x}$ e identificar a reta tangente, com
+o seguinte código \texttt{R}.
+
+```{r, fig.width=8,fig.height=4}
+fx <- function(x) {
+  out <- 1/x
+  return(out)
+}
+
+f_prime <- function(x) {
+  out <- - 1/x^2
+  return(out)
+}
+
+# Equação da reta y = a + b*x
+intercept = (fx(x = 2) - f_prime(x = 2)*2)
+intercept
+slope <- f_prime(x = 2)
+slope
+
+par(mar=c(2.6, 2.8, 1.2, 0.5), mgp = c(1.6, 0.6, 0))
+x <- seq(0, 5, l = 11)
+plot(fx(x) ~ x, type = "l")
+dev_values <- seq(0.5, 5, l = 100)
+lines(dev_values, c(intercept + slope*dev_values))
+points(2, fx(2))
+```
+
+b) $f(x) = x^3$ nos pontos de abscissa -3 e 3. 
+
+```{r}
+x <- seq(-5,5, length.out = 300)
+fx <- x^3
+plot(fx ~ x, type = "l")
+tang <- 27*x+54
+lines(x, tang, col = "red")
+points(-3, -27, col = "blue")
+tang <- 27*x-54 #Reta tangente no ponto -3
+points(3, 27, col = "blue")
+lines(x, tang, col = "green")
+```
+
+c) $f(x) = \exp{x}$ no ponto de abscissa 0.
+
+```{r}
+x <- -5:3
+plot(exp(x)~x, type = "l")
+
+points(0, 1, col = "blue")
+y <- x+1 #Reta tangente no ponto 0
+lines(x, y, type = "l", col = "red")
+```
+
+d) $f(x) = \log{x}$ no ponto de abscissa 2. 
+
+```{r}
+x <- seq(0,10, length.out = 30)
+fx <- log(x)
+plot(fx ~ x, type = "l")
+tang <- 0.5*x-1+log(2) #Reta tangente no ponto 2
+lines(x, tang, col = "red")
+points(2, log(2), col = "blue")
+```
+
+
+## Calcule a derivada das seguintes funções:
+
+a) $f(x) = 4 x^3 + x^2$.
+
+Solução
+
+\begin{equation}
+f^{\prime}(x) = 3*4 x^{3-1} + 2 x^{2-1} = 12 x^2 + 2x.
+\end{equation}
+
+b) $f(x) = 5x^4 + 4$.
+
+Mesmos passos de a). Resposta = $20x^5$
+
+c) $f(x) = \frac{2x + 3}{x^2 + 1}$.
+
+Solução
+
+Usando a regra da divisão temos que a derivada da razão entre $k(x)$
+e $g(x)$ é dada por
+$$ \frac{k^{\prime}(x) g(x) - g^{\prime}(x) k(x)}{g(x)^2}.$$
+
+Neste caso temos que $k(x) = 2x + 3$ e $g(x) = x^2 + 1$. As derivadas
+são $k^{\prime}(x) = 2$ e $g^{\prime}(x) = 2x$. Substituindo na equação
+acima temos.
+
+$$ f^{\prime}(x) = \frac{2(x^2 + 1) - 2x(2x + 3)}{(x^2 + 1)^2} = ... = \frac{-2(x^2 + 3x - 1)}{(x^2 + 1)^2} $$
+
+d) $f(x) = (3x^2 + 1)\exp^{x}$.
+
+Solução
+
+Usando a regra do produto temos
+
+$$ f^{\prime}(x) = 6x \exp^{x} + \exp^{x}.$$
+
+
+e) $f(x) = \sqrt[3]{x}$.
+$$f'(x) = \frac{1}{3\sqrt[3]{x^2}}$$
+f) $f(x) = 5 x^4 + 6 x^3 + x^2 + 2$.
+
+$$f'(x) = 20x^3 + 18x^2 + 2x$$
+
+4. Calcule a derivada das seguintes funções usando a regra da cadeia.
+
+a) $f(x) = \exp{3x}$.
+
+Solução
+
+Chame $a = 3x$, então pela regra da cadeia temos,
+
+$$ 
+f^{\prime}(x) = \frac{d f(x)}{d a} \frac{d a}{dx} \\ 
+  = 3 \exp^{3x}.
+$$
+
+b) $f(x) = \sin{x^2}$.
+
+Uma outra forma, menos formal, de se pensar como resolvar a seguinte derivada, é identificar o elemento "de dentro" e o "de fora", e então multiplicar as derivadas de tais elementos.
+
+Fazendo $x^2$ como a derivada de dentro e $sin(x)$ a derivada de fora, temos:
+
+$$f'(x) = (x^2)'sin'(x^2) = 2x cos(x^2)$$
+
+c) $f(x) = (3x^2 + 1)^3$.
+Solução
+
+Chame $a = 3x^2 + 1$, então pela regra da cadeia temos
+
+$$
+f^{\prime}(x) = \frac{d f(x)}{d a} \frac{d a}{d x} \\
+= (3(3x^2 + 1) )(6x) = 18x(3x^1 +1).
+$$
+
+
+d) $f(x) = \log{(x^2 + 3)}$.
+Solução
+
+$$f'(x) = \frac{1}{x^2+3}2x$$
+
+e) $f(x) = x^2 \exp^{3x}$.
+
+Aqui é necessário aplicar a regra da derivada do produto primeiramente, para-se então aplicar a regra da cadeia:
+
+Regra do produto:
+
+$$(fg)' = f'g + fg`$$
+
+$$f'(x) = (x^2)'(e^{3x})+(x^2)(e^{3x})' = 2xe^{3x} + x^2e^{3x}3 = ... = xe^{3x}(3x+2)$$
+
+f) $f(x) = \log{(x^2 + 3x + 9)}$.
+Solução
+
+Chame $a = x^2 + 3x + 9$, então pela regra da cadeia temos
+
+$$f^{\prime}(x) = \frac{d f(x)}{d a} \frac{d a}{d x} = \frac{1}{x^2 + 3x + 9} (2x + 3).$$
+
+g) $f(x) = \sqrt{x + \exp^{x}}$.
+
+$$f'(x) = (x+e^x)^{1/2} = \frac{1}{2}(x+e^{x})^{-1/2}(1+e^x) = \frac{1+ e^x}{2\sqrt{x+e^x}}$$
+
+## Aproxime as seguintes funções usando a expansão de Taylor de segunda ordem. Esboce o gráfico da função e da aproximação.
+
+a) $f(\mu) = \sum_{i=1}^n (y_i - \mu)^2$. Fixe $y_i = 2.09;-1.32;-0.20;0.05;-0.07$.
+
+A série de Taylor é definida da seguinte forma:
+
+$$\sum_{n = 0}^{\infty}\frac{f^{n}(\mu_0)}{n!}(\mu-\mu_0)^n$$
+
+A expansão de Taylor de segunda ordem, significa realizar a expansão de Taylor até a 2ª derivada (n=2):
+
+$$f(\mu) = f(\mu_0) + (\mu - \mu_0)f'(\mu=\mu_0)+\frac{(\mu-\mu_0)^2}{2!}f''(\mu = \mu_0)$$
+
+Nesse caso, $y_i$ são os valores fornecidos, $\mu$ é o grid de valores para o vetor de média e $\mu_0$ é o valor cujo o qual queremos aproximar através de Taylor.
+
+Primeiro Passo: Obter a 1ª e 2ª derivada de $f(\mu)$:
+
+$$f'(\mu) = 2\sum_{i=1}^n (y_i - \mu)(-1) = -2\sum_{i=1}^n (y_i - \mu)$$
+
+$$f''(\mu) = (f'(\mu))' = (-2\sum_{i=1}^n y_i)' (-2\sum_{i=1}^n -\mu)' = 0 + (2n\mu)' = 2n $$
+
+Para terminar o exercício, precisamos programar cada função e suas derivadas, bem como colocar os pontos. O grid para $\mu$ vai de -50 até 50. Iremos aproximar a série de Taylor para os pontos -20 e 0.
+
+
+```{r}
+#f(u)
+f <- function(y, mu){
+  return(sum((y-mu)^2))
+}
+yi <- c(2.09, -1.32, -0.2, 0.05, -0.07)
+mu <- -20:20
+out <- c()
+for (i in 1:length(mu)){
+  out[i] <- f(yi, mu[i])
+}
+plot(out ~ mu, type = "l")
+
+# Série de taylor
+taylor_ap <- function(mu, mu0, fprime, f_dprime, y){
+  value <- f(y, mu = mu0) +
+           (mu - mu0)*fprime(mu = mu0, y = y) + 
+           (((mu-mu0)^2)/2)*f_dprime(y = y)
+  return(value)
+}
+taylor_ap <- Vectorize(taylor_ap, "mu")
+# f'(u)
+fprime <- function(y, mu){
+  return(-2*sum(y-mu))
+}
+#f''(u)
+f_dprime <- function(y){
+  return(+2*length(y))
+}
+lines(-20:20, taylor_ap(mu = c(-20:20),
+          mu0 = mean(yi),
+          fprime = fprime,
+          f_dprime = f_dprime,
+          y = yi),
+      col = "red", lty = 2)
+
+legend("topleft", legend = c("True","Taylor (mu0 = -0.11)"),lty = c(1,2), col = c(1,2), lwd = c(1,1), bty = "n")
+```
+
+Note que para uma função de perda quadrática a aproximação da série de Taylor é exata.
+
+b) $f(\mu) =\sum_{i=1}^n 2 \left ( y_i \log \frac{y_i}{\mu} + \mu - y_i \right )$. 
+Fixe $y_i = 7;4;4;6;5$.
+
+$$f'(\mu) = \frac{-2}{\mu}\sum_{i=1}^ny_i + 2n$$
+
+$$f''(\mu) = \frac{2}{\mu^2}\sum_{i=1}^ny_i$$
+
+```{r}
+# Distribuição Gamma
+#f(u)
+f <- function(y, mu){
+  return(2*sum((y*log(y/mu)+mu-y)))
+}
+yi <- c(7, 4, 4, 6, 5)
+mu <- seq(1,13, length.out = 1000)
+out <- c()
+for (i in 1:length(mu)){
+  out[i] <- f(yi, mu[i])
+}
+plot(out ~ mu, type = "l")
+# f'(u)
+fprime <- function(y, mu){
+  return(sum(2*((-y/mu) + 1)))
+}
+#f''(u)
+f_dprime <- function(y, mu){
+  return(sum(2*(y/(mu^2))))
+}
+taylor_ap <- function(mu, mu0, fprime, f_dprime, y){
+  value <- f(y, mu = mu0) +
+           (mu - mu0)*fprime(mu = mu0, y = y) + 
+           (((mu-mu0)^2)/2)*f_dprime(y = y, mu = mu0)
+  return(value)
+}
+taylor_ap <- Vectorize(taylor_ap, "mu")
+# taylor_ap(mu = c(2,3), mu0 = mean(yi), fprime = fprime, f_dprime = f_dprime, y = yi)
+
+# tt <- taylor_ap(mu = c(2:13), mu0 = mean(yi), fprime = fprime, f_dprime = f_dprime, y = yi)
+# plot(tt ~ c(2:13))
+
+lines(mu, taylor_ap(mu = mu,
+          mu0 = mean(yi),
+          fprime = fprime,
+          f_dprime = f_dprime,
+          y = yi),
+      col = "red", lty = 2)
+
+legend("topleft", legend = c("Função Verdadeira","Taylor (mu0 = 5.2)"),lty = c(1,2), col = c(1,2), lwd = c(1,1), bty = "n")
+```
+
+c) $\sum_{i=1}^n 2 \left ( \frac{y_i}{\mu} - \log \frac{y_i}{\mu} - 1 \right )$. 
+Fixe $y_i = 2.35;0.16;0.56;1.05;0.51$.
+
+$$f'(\mu) = \frac{-2}{\mu^2}\sum_{i=1}^ny_i + \frac{n}{\mu}$$
+
+$$f''(\mu) = \frac{4}{\mu^3}\sum_{i=1}^ny_i -\frac{n}{\mu^2}$$
+
+```{r}
+#f(u)
+f <- function(y, mu){
+  return(sum(2*((y/mu)-log(y/mu)-1)))
+}
+yi <- c(2.35, 0.16, 0.56, 1.05, 0.51)
+mu <- seq(0.5, 1.5, length.out = 100)
+out <- c()
+for (i in 1:length(mu)){
+  out[i] <- f(yi, mu[i])
+}
+plot(out ~ mu, type = "l")
+# f'(u)
+fprime <- function(y, mu){
+  return(2*(sum((-y/(mu^2)) + 1/mu)))
+}
+#f''(u)
+f_dprime <- function(y, mu){
+  return(2*sum(((2*y)/(mu^3)) -(1/(mu^2))))
+}
+taylor_ap <- function(mu, mu0, fprime, f_dprime, y){
+  value <- f(y, mu = mu0) +
+           (mu - mu0)*fprime(mu = mu0, y = y) + 
+           (((mu-mu0)^2)/2)*f_dprime(y = y, mu = mu0)
+  return(value)
+}
+taylor_ap <- Vectorize(taylor_ap, "mu")
+lines(mu, taylor_ap(mu = mu,
+          mu0 = mean(yi),
+          fprime = fprime,
+          f_dprime = f_dprime,
+          y = yi),
+      col = "red", lty = 2)
+
+legend("topleft", legend = c("Função Verdadeira","Taylor (mu0 = 0.926)"),lty = c(1,2), col = c(1,2), lwd = c(1,1), bty = "n")
+```
+
+d) $\sum_{i=1}^n 2 \left ( y_i \log \frac{y_i}{\mu} + (1- y_i) \log \frac{1-y_i}{1-\mu} \right )$.
+Fixe $y_i = 1;0;1;1;1$.
+
+$$f'(\mu) = 2\sum_{i=1}^n(\frac{-y_i}{\mu} + \frac{(1-y_i)}{(1-\mu)})$$
+
+$$f''(\mu) = 2\sum_{i=1}^n(\frac{y_i}{\mu^2} + \frac{(1-y_i)}{(1-\mu)^2})$$
+
+```{r}
+#f(u)
+# mu <- 0.01
+# y <- yi
+f <- function(y, mu){
+  return(sum(2*(ifelse(y == 0, (1-y)*log((1-y)/(1-mu)), y*log(y/mu)))))
+}
+yi <- c(1,0,1,1,1)
+# yi <- rbinom(1000, 1, 0.5) Aproxima legal!!
+mu <- seq(0.4,0.99, length.out = 100)
+out <- c()
+for (i in 1:length(mu)){
+  out[i] <- f(yi, mu[i])
+}
+plot(out ~ mu, type = "l")
+# f'(u)
+
+fprime <- function(y, mu){
+  return((-2*sum(y)+2*length(y)*mu)/(mu*(1-mu)))
+}
+
+fprime <- function(y, mu){
+  return(2*sum((-y/mu)+((1-y)/(1-mu))))
+}
+
+#f''(u)
+f_dprime <- function(y, mu){
+  return(2*sum((y/(mu^2)) + (1-y)/(1-mu)^2))
+}
+
+taylor_ap <- function(mu, mu0, fprime, f_dprime, y){
+  value <- f(y, mu = mu0) +
+           (mu - mu0)*fprime(mu = mu0, y = y) + 
+           (((mu-mu0)^2)/2)*f_dprime(y = y, mu = mu0)
+  return(value)
+}
+taylor_ap <- Vectorize(taylor_ap, "mu")
+
+lines(mu, taylor_ap(mu = mu,
+          mu0 = mean(yi),
+          fprime = fprime,
+          f_dprime = f_dprime,
+          y = yi),
+      col = "red", lty = 2)
+
+legend("topleft", legend = c("Função Verdadeira","Taylor (mu0 = 0.8)"),lty = c(1,2), col = c(1,2), lwd = c(1,1), bty = "n")
+```
+
+
+e) $\sum_{i=1}^n 2 \left ( y_i \log \frac{y_i}{\mu} + (m + y_i) \log \frac{m + \mu}{m + y_i} \right)$. Fixe $m = 1$ e $y_i = 7;4;4;6;5$.
+
+$$f'(\mu) = 2\sum_{i=1}^n(\frac{-y_i}{\mu} + \frac{(1+y_i)}{(1+\mu)})$$
+
+$$f''(\mu) = 2\sum_{i=1}^n(\frac{y_i}{\mu^2} + \frac{(1+y_i)}{(1+\mu)^2})$$
+
+```{r}
+#f(u)
+f <- function(y, mu){
+  return(sum(2*(y*log(y/mu) + (1+y)*log((1+mu)/(1+y)))))
+}
+yi <- c(7,4,4,6,5)
+# yi <- rpois(100, mean(yi))
+mu <- seq(1,20, length.out = 100)
+# y <- yi
+# mu <- 0.01
+# f(yi, 2)
+out <- c()
+for (i in 1:length(mu)){
+  out[i] <- f(yi, mu[i])
+}
+plot(out ~ mu, type = "l")
+# f'(u)
+fprime <- function(y, mu){
+  return(2*sum((-y/mu) + (1+y)/(1+mu)))
+}
+#f''(u)
+f_dprime <- function(y, mu){
+  return(2*sum((y/(mu^2)) - (1+y)/((1+mu)^2)))
+}
+taylor_ap <- function(mu, mu0, fprime, f_dprime, y){
+  value <- f(y, mu = mu0) +
+           (mu - mu0)*fprime(mu = mu0, y = y) + 
+           (((mu-mu0)^2)/2)*f_dprime(y = y, mu = mu0)
+  return(value)
+}
+taylor_ap <- Vectorize(taylor_ap, "mu")
+lines(mu, taylor_ap(mu = mu,
+          mu0 = mean(yi),
+          fprime = fprime,
+          f_dprime = f_dprime,
+          y = yi),
+      col = "red", lty = 2)
+
+legend("topleft", legend = c("Função Verdadeira","Taylor (mu0 = 5.2)"),lty = c(1,2), col = c(1,2), lwd = c(1,1), bty = "n")
+```
+
+## Considerando as funções apresentadas no exercício 5 identifique o ponto de inflexão e verique se é um ponto de máximo ou mínimo.
+
+Todos os pontos de inflexão do exercício 5 referem-se a média amostral dos dados, e correspondem ao ponto de mínimo da função.
+
+# Integrais
+
+## Calcule as seguintes integrais indefinidas:
+
+a) $\int x^3 dx$.
+Solução
+
+$$ \int x^3 dx = \frac{x^{3+1}}{3+1} = \frac{x^4}{4} + c$$
+
+b) $\int \frac{1}{x^2} dx$.
+$\int \frac{1}{x^2} dx = \int x^{-2} dx = \frac{-1}{x}+ c$
+
+
+c) $\int \sqrt[3]{x^2} dx$.
+$\int \sqrt[3]{x^2} dx = \int x^{2/3} dx = \frac{3x\sqrt(x^2)}{5} + c$
+
+d) $\int \left ( \frac{1}{x} \right )dx$.
+
+Por definição: $ln \mid x \mid + c$
+
+e) $\int \left ( \frac{1}{x} + \sqrt{x} \right )dx$.
+
+$$ 
+\int \left ( \frac{1}{x} + \sqrt{x} \right )dx = \int \left ( \frac{1}{x} \right )dx + \int \sqrt{x} dx \\
+= \log(x) + \frac{2}{3}x^{2/3}.
+$$
+
+f) $\int \exp^{\alpha x} dx$.
+
+Solução
+
+$$
+\int \exp^{\alpha x} dx = \frac{1}{\alpha} \exp^{\alpha x}.
+$$
+
+g) $\int \exp^{2x} dx$.
+
+$\frac{e^{2x}}{2} + c$
+
+h) $\int 3 dx$.
+
+$3x + c$
+
+i) $\int \exp^{-x}dx$.
+
+$-e^{-x} + c$
+
+j) $\int (x + 3\exp^{x})dx$.
+
+$\frac{x^2}{2}+3e^x + c$
+
+2. Calcule as seguintes integrais definidas:
+
+a) $\int_{1}^2 x^2 dx$.
+
+$$
+\int_{1}^2 x^2 dx = \frac{x^3}{3}|_2 - \frac{x^3}{3}|_1 = \frac{2^3}{3} - \frac{1^3}{3} = \frac{7}{3}.
+$$
+
+b) $\int_{-1}^4 4 dx$.
+$$
+\int_{-1}^4 4 dx = 4 x|_{4} - 4x|_{-1} = 16 - (-4) = 20.
+$$
+
+c) $\int_{0}^2 (x^3 + 3x -1)dx = 12$.
+d) $\int_{1}^2 \frac{1}{x^2} dx = \frac{1}{2}$.
+e) $\int_{1}^2 \left ( \frac{1}{x} + \frac{1}{x^3} \right )dx = log(2) + \frac{3}{8}$.
+
+3. Usando a soma de Riemann (numericamente) calcule as seguintes integrais definidas:
+
+
+```{r}
+soma_riemann <- function(n, a, b, fx, ...) {
+  intervalos <- seq(a, b, length = n)
+  ci <- c()
+  soma <- c()
+  for(i in 1:c(n-1)) {
+    Deltai <- (intervalos[i+1] - intervalos[i]) # tamanho do intervalo
+    ci[i] <- (intervalos[i+1] + intervalos[i])/2 # ponto central do intervalo
+    soma[i] <- fx(ci[i])*Deltai # cada elemento da soma
+  }
+  return(sum(soma))
+}
+soma_riemann <- Vectorize(soma_riemann, "n")
+```
+
+a) $\int_{-150}^{150}\exp^{- \frac{(x - 5)^2}{2}} dx$.
+
+```{r}
+fx <- function(x) {
+  return(exp(-(((x-5)^2)/2)))
+}
+soma_riemann(n = 1000,a = -150, b = 150, fx = fx)
+```
+
+
+b) $\int_{0}^{100} x \exp^{- \frac{x}{5}} dx$.
+```{r}
+fx <- function(x) {
+  return(x * exp(-x/5))
+}
+soma_riemann(n = 1000,a = 0, b = 100, fx = fx)
+```
+
+c) $\int_{0}^{100} \exp^{- \frac{2(x - 5)^2}{27 x}} dx$.
+
+```{r}
+fx <- function(x) {
+  return(exp(-((2*(x-5)^2)/(27*x))))
+}
+soma_riemann(n = 1000,a = 0, b = 100, fx = fx)
+```
+
+d) $\int_{0}^{100} \exp^{- \frac{|x-5|}{2}} dx$.
+```{r}
+fx <- function(x) {
+  return(exp(-(abs(x-5)/2)))
+}
+soma_riemann(n = 1000,a = 0, b = 100, fx = fx)
+```
+
+e) $\int_{1}^2 \left ( \frac{1}{x} + \frac{1}{x^3} \right )dx$.
+```{r}
+fx <- function(x) {
+  return((1/x)+(1/(x^3)))
+}
+soma_riemann(n = 1000,a = 1, b = 2, fx = fx)
+```
+
+# Aplicações 
+
+## Sejam $y_i$ valores observados para $i = 1, \ldots, n$. Considere a função perda absoluta dada por $$ f(\mu) = \sum_{i=1}^n | y_i - \mu|.$$
+
+a) Usando o $\texttt{R}$ ou qualquer outro software conveniente, simule um conjunto de valores adequado para $y_i$.
+
+```{r}
+set.seed(13403259)
+y <- rnorm(100) # Simulação de um conjunto de valores adequados para yi
+```
+
+b) Esboce o gráfico da função perda para este conjunto de dados e diferente valores de $\mu$.
+
+```{r}
+u <- -10:10 # Diferentes valores de u
+mm <- matrix(0, nrow = 100, ncol = 21)
+colnames(mm) <- -10:10
+j <- 1
+for (j in 1:21){
+  mm[, j] <- abs(y - u[j])
+}
+mm.sum <- colSums(mm)
+# Esboço do gráfico da função
+plot(mm.sum ~ u, type= c("b"))
+```
+
+c) Encontre o valor de $\mu$ que miniza a função perda absoluta.
+
+```{r}
+f.perda.abs <- function(y, u){
+  return(sum(abs(y-u)))
+}
+optim(0, fn = f.perda.abs, y = y)$par
+# optim(-0.2422656, fn = f.perda.abs, y = y) # Forçando a Mediana
+# optim(-0.5, fn = f.perda.abs, y = y)
+median(y)
+```
+
+O valor de  $\mu = -0.24$ minimiza a função, que nesse caso é igual a mediana. Note que o `optim` retornou um valor muito próximo ao da mediana.
+
+d) Discuta quando a funçao perda absoluta pode ser mais conveniente do que a função perda quadrática.
+
+É mais interessante utilizar a função de perda absoluta em relação a quadrática quando observa-se a presença de *outliers* no cojunto  de dados, isto é, quando alguma observação domina os valores das demais (dados 
+corrompidos).
+
+```{r}
+y <- rnorm(100)
+f.perda.quad <- function(y, u){
+  return(sum((y-u)^2))
+}
+df <- data.frame(mu = -10:10)
+df$perda.absoluta <- apply(df, 1, function(mu){f.perda.abs(y, mu)})
+df$perda.quadratica <- apply(df[, 1, drop = F], 1, function(mu){f.perda.quad(y, mu)})
+long <- melt(df, id.vars = "mu")
+ggplot(long, aes(x = mu, y = value, color = variable)) +
+  geom_line() +
+  facet_wrap(~variable, ncol = 1, scale = "free") +
+  theme(legend.position = "none") +
+  labs(y = "Perda")
+```
+
+Observe que no gráfico da perda asboluta, quando $\mu = -5$, perda = 500, e quando $\mu = -10$, perda = 1000. Ou seja, a perda foi o dobro quando a média foi alterada em 5 unidades.
+
+Na perda quadrática, para $\mu = \{-5, -10\}$, teve-se perda igual a 2500 e 10000 respesctivamente. Ou seja, a perda foi 4x maior quando a média foi alterada em 5 unidades. 
+
+Dessa forma, fica claro que a perda quadrática é afetada muito mais pelos valores extremos do que a perda absoluta.
+
+https://heartbeat.fritz.ai/5-regression-loss-functions-all-machine-learners-should-know-4fb140e9d4b0
+
+
+## Sejam $y_i$ e $x_i$ valores observados para $i = 1, \ldots, n$. Considere o problema de ajustar uma reta relacionando $y_i$ com $x_i$, usando a função perda absoluta $$ f(\beta_0,\beta_1) = \sum_{i=1}^n | y_i - (\beta_0 + \beta_1 x_i)|.$$
+
+a) Usando o $\texttt{R}$ ou qualquer outro software conveniente, simule um conjunto de valores adequado para $y_i$ fixado um vetor para $x_i$ .
+
+b) Esboce o gráfico da função perda para este conjunto de dados e diferentes valores de $\beta_0$ e $\beta_1$.
+
+```{r}
+x1 <- -50:49
+b0 <- 10
+b1 <- 2
+set.seed(123)
+y <- rnorm(100, mean = b0 + b1*x1, sd = 10)
+plot(y ~ x1)
+df <- expand.grid(b0 = seq(9.5, 10.5, length.out = 100),
+                  b1 = seq(1.5, 2.5, length.out = 100))
+df$perda.abs <- 0
+for (i in 1:nrow(df)){
+  mu <- df[i, 1] + df[i, 2]*x1
+  perda <- sum(abs(y - mu))
+  df[i, 3] <- perda
+}
+# head(df)
+
+mat <- dcast(df, b0 ~ b1, fun.aggregate = sum, value.var = "perda.abs")
+mat <- as.matrix(mat)
+# head(mat)
+
+image(mat[, 1], as.numeric(colnames(mat)[-1]), mat[, -1], xlab = "b0", ylab = "b1")
+contour(mat[, 1], as.numeric(colnames(mat)[-1]), mat[, -1], add = T, drawlabels = T, nlevels = 20)
+```
+
+c) Encontre o valor de $\beta_0$ e $\beta_1$ que miniza a função perda absoluta.
+
+```{r}
+fx.perda <- function(b, y, x){
+  mu <- b[1] + b[2]*x
+  return(sum(abs(y-mu)))
+}
+# Valor de bo e b1 que minimizam a função perda
+optim(c(10, 2), fx.perda, y = y, x = x1)$par
+```
+
+
+d) Discuta quando a função perda absoluta pode ser mais conveniente do que a função perda quadrática.
+
+Idem ao anterior.

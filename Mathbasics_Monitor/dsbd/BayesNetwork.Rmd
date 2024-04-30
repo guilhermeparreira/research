@@ -1,0 +1,13 @@
+---
+title: "Redes Bayesianas"
+author: "Wagner Hugo Bonat"
+date: '2018-12-08'
+output: pdf_document
+subtitle: 'Exemplos de Redes Bayesianas em R'
+---
+
+```{r, cache=FALSE, include=FALSE}
+source("config/setup.R")
+```
+
+

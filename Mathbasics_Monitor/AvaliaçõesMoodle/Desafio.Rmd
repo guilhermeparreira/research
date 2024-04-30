@@ -1,0 +1,45 @@
+---
+title: "Desafio: Predizendo o número de inscritos em canais do youtube"
+author: "prof. Wagner Hugo Bonat LEG/UFPR"
+date: 2019-03-29
+---
+
+```{r, cache=FALSE, include=FALSE}
+source("config/setup.R")
+```
+
+
+# Desafio: Predizendo o número de inscritos em canais do youtube.
+
+O conjunto de dados \texttt{youtube.csv} apresenta o número de 
+\textit{views} e inscritos desde o dia de sua abertura para dois canais 
+de sucesso do \textit{youtube}. O objetivo é predizer o número **acumulado**
+de inscritos em cada um destes canais para o próximo ano ($365$ dias).
+Para isto você decidiu emprestar um modelo biológico do crescimento
+de bactérias chamado modelo logístico, dado pela seguinte equação:
+$$y = \frac{L}{1+ \exp(\beta(x - \beta_0)) }$$
+onde $L$ é o valor máximo da curva, $\beta_0$ o valor de $x$ no ponto 
+médio da curva e $\beta$ é a declividade da curva.
+
+A Figura abaixo apresenta um gráfico do modelo logístico. 
+
+```{r, echo = FALSE}
+par(mfrow = c(1,1), mar=c(2.6, 3, 1.2, 0.5), mgp = c(1.6, 0.6, 0))
+f_log <- function(DIAS, L, beta, beta0) {
+  out <- L/(1+ exp(-beta*(DIAS - beta0)))
+  return(out)
+}
+DIAS <- 1:800
+plot(f_log(DIAS = DIAS, L = 90, beta = 0.01, beta0 = 400) ~ DIAS, 
+     ylab = "Número de inscritos", xlab = "Dias da abertura",
+     type = "l", ylim = c(0,95))
+abline(h = 90) 
+text(x = 800, y = 93, label = "L")
+text(x = 425, y = f_log(DIAS = 400, L = 90, beta = 0.01, beta0 = 400), 
+     label = expression(beta))
+points(x = 400, pch = 19, col = "red",
+       y = f_log(DIAS = 400, L = 90, beta = 0.01, beta0 = 400))
+```
+
+
+
